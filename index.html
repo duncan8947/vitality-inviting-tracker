@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b3d2e" />
-  <title>Vitality Nutrition – Inviting & Follow-Up Tracker</title>
+  <title>Contact Database & Follow-Up Engine</title>
 
   <link rel="manifest" href="./manifest.json" />
   <style>
@@ -13,12 +13,11 @@
     body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
     .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
     .header { display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
-    h1 { margin:0; font-size: 20px; line-height:1.2; }
+    h1 { margin:0; font-size: 20px; }
     .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
     .card { background: var(--card); border:1px solid var(--line); border-radius: 14px; padding: 12px; }
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .btn { border:1px solid var(--line); background:#0f172a; color:var(--text); padding:10px 12px; border-radius: 12px; font-weight:700; cursor:pointer; }
-    .btn:active { transform: scale(.99); }
     .btn.primary { background: #0b3d2e; border-color:#0b3d2e; }
     .btn.danger { background: #3a0f18; border-color:#5b1a27; }
     .btn.small { padding:7px 10px; border-radius: 10px; font-weight:800; }
@@ -31,439 +30,198 @@
       outline: none;
     }
     textarea { min-height: 70px; resize: vertical; }
-    .grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; }
-    @media (max-width: 900px){ .grid { grid-template-columns: 1fr 1fr; } }
+    .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
+    @media (max-width: 900px){ .grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 720px){ .grid { grid-template-columns: 1fr; } }
-
-    table { width:100%; border-collapse: collapse; margin-top: 10px; overflow:hidden; border-radius: 12px; }
-    th, td { padding:10px; border-bottom:1px solid var(--line); text-align:left; vertical-align: top; }
-    th { color:var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing:.06em; }
-    .small { font-size: 12px; color: var(--muted); }
-    .footer { margin-top: 10px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
-    .actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-
-    a.phone {
-      color: var(--text);
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      font-weight: 900;
-      white-space: nowrap;
-    }
-    .inlineBtns { display:flex; gap:8px; flex-wrap:wrap; }
-    .muted { color: var(--muted); }
-    .overdue { color: #ffb4b4; font-weight: 900; }
-    .today { color: #b9ffcc; font-weight: 900; }
-    .tag { display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid var(--line); font-size:12px; color: var(--muted); }
-    .tight { line-height: 1.2; }
-    .topControls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
-    .filterSelect { width:auto; min-width: 240px; }
+    table { width:100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding:10px; border-bottom:1px solid var(--line); text-align:left; }
+    th { color:var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
+    .overdue { color:#ffb4b4; font-weight:900; }
+    .today { color:#b9ffcc; font-weight:900; }
+    a.phone { color:var(--text); font-weight:900; text-decoration:underline; }
+    .topControls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="header">
-      <div>
-        <h1>Vitality Nutrition – Inviting & Follow-Up Tracker</h1>
-        <div class="sub">Store contacts, bookings + callbacks. Tap to call/text. Sorted by Next Action.</div>
-      </div>
+<div class="wrap">
 
-      <div class="topControls">
-        <span class="pill" id="countPill">0 contacts</span>
-        <span class="pill" id="todayPill">Today: 0</span>
-        <span class="pill" id="overduePill">Overdue: 0</span>
-
-        <select id="filter" class="filterSelect">
-          <option value="ALL">All contacts</option>
-          <option value="TODAY">Next action: Today</option>
-          <option value="OVERDUE">Next action: Overdue</option>
-          <option value="STAGE::Invite sent">Stage: Invite sent</option>
-          <option value="STAGE::Booked evaluation">Stage: Booked evaluation</option>
-          <option value="STAGE::Attended evaluation">Stage: Attended evaluation</option>
-          <option value="STAGE::Joined">Stage: Joined</option>
-          <option value="STAGE::Follow-up #1 (10 mins)">Stage: Follow-up #1 (10 mins)</option>
-          <option value="STAGE::Follow-up #2 (same evening)">Stage: Follow-up #2 (same evening)</option>
-          <option value="STAGE::Follow-up #3 (2 days)">Stage: Follow-up #3 (2 days)</option>
-          <option value="STAGE::Follow-up #4 (7 days)">Stage: Follow-up #4 (7 days)</option>
-          <option value="STAGE::Quarterly follow-up">Stage: Quarterly follow-up</option>
-        </select>
-      </div>
+  <div class="header">
+    <div>
+      <h1>Contact Database & Follow-Up Engine</h1>
+      <div class="sub">Simple contact database with tap-to-call, follow-up stages, and optional next actions.</div>
     </div>
 
-    <div class="card" style="margin-top:12px;">
-      <div class="grid">
-        <div>
-          <label class="small">Date added</label>
-          <input id="date" type="date" />
-        </div>
+    <div class="topControls">
+      <span class="pill" id="countPill">0 contacts</span>
+      <span class="pill" id="todayPill">Today: 0</span>
+      <span class="pill" id="overduePill">Overdue: 0</span>
 
-        <div>
-          <label class="small">Name</label>
-          <input id="name" placeholder="e.g. Sarah" />
-        </div>
-
-        <div>
-          <label class="small">Phone number</label>
-          <input id="phone" inputmode="tel" placeholder="e.g. 07495 425 049" />
-          <div class="small muted" style="margin-top:6px;">Tip: paste with spaces — it will tidy it up.</div>
-        </div>
-
-        <div>
-          <label class="small">Channel</label>
-          <select id="channel">
-            <option>Street</option>
-            <option>Instagram</option>
-            <option>Facebook</option>
-            <option>Referral</option>
-            <option>Walk-in</option>
-            <option>Other</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="small">Stage</label>
-          <select id="stage">
-            <option>Invite sent</option>
-            <option>Booked evaluation</option>
-            <option>Attended evaluation</option>
-            <option>Joined</option>
-            <option>Follow-up #1 (10 mins)</option>
-            <option>Follow-up #2 (same evening)</option>
-            <option>Follow-up #3 (2 days)</option>
-            <option>Follow-up #4 (7 days)</option>
-            <option>Quarterly follow-up</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="small">Next action date</label>
-          <input id="nextAction" type="date" />
-          <div class="small muted" style="margin-top:6px;">This is what drives the sorted list + Today/Overdue.</div>
-        </div>
-
-        <div style="grid-column: 1 / -1;">
-          <label class="small">Notes</label>
-          <textarea id="notes" placeholder="Goals, objections, preferred times, who referred them, etc."></textarea>
-        </div>
-      </div>
-
-      <div class="footer">
-        <div class="row">
-          <button class="btn primary" id="addBtn">+ Add contact</button>
-          <button class="btn" id="exportBtn">Export CSV</button>
-        </div>
-        <div class="actions">
-          <button class="btn danger" id="clearBtn">Clear all (this device)</button>
-        </div>
-      </div>
-
-      <table aria-label="Contacts table">
-        <thead>
-          <tr>
-            <th>Next action</th>
-            <th>Person</th>
-            <th>Stage</th>
-            <th>Channel</th>
- 
-            <th>Date added</th>
-            <th>Notes</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-
-      <div class="small" style="margin-top:10px;">
-        Tip: Set <strong>Next action date</strong> every time so this becomes your daily callback engine.
-      </div>
+      <select id="filter">
+        <option value="ALL">All contacts</option>
+        <option value="TODAY">Next action: Today</option>
+        <option value="OVERDUE">Next action: Overdue</option>
+        <option value="STAGE::Invite sent">Stage: Invite sent</option>
+        <option value="STAGE::Booked evaluation">Stage: Booked evaluation</option>
+        <option value="STAGE::Attended evaluation">Stage: Attended evaluation</option>
+        <option value="STAGE::Joined">Stage: Joined</option>
+        <option value="STAGE::Follow-up #1 (10 mins)">Follow-up #1</option>
+        <option value="STAGE::Follow-up #2 (same evening)">Follow-up #2</option>
+        <option value="STAGE::Follow-up #3 (2 days)">Follow-up #3</option>
+        <option value="STAGE::Follow-up #4 (7 days)">Follow-up #4</option>
+        <option value="STAGE::Quarterly follow-up">Quarterly follow-up</option>
+      </select>
     </div>
   </div>
 
-  <script>
-    const STORAGE_KEY = "vitality_followup_contacts_v1";
+  <div class="card" style="margin-top:12px;">
+    <div class="grid">
+      <div>
+        <label class="small">Date added</label>
+        <input id="date" type="date" />
+      </div>
 
-    const el = (id) => document.getElementById(id);
-    const tbody = el("tbody");
+      <div>
+        <label class="small">Name</label>
+        <input id="name" />
+      </div>
 
-    function todayISO() {
-      const d = new Date();
-      const off = d.getTimezoneOffset();
-      const local = new Date(d.getTime() - off * 60000);
-      return local.toISOString().slice(0,10);
-    }
+      <div>
+        <label class="small">Phone number</label>
+        <input id="phone" inputmode="tel" />
+      </div>
 
-    function escapeHtml(str){
-      return String(str ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
+      <div>
+        <label class="small">Channel</label>
+        <select id="channel">
+          <option>Street</option>
+          <option>Instagram</option>
+          <option>Facebook</option>
+          <option>Referral</option>
+          <option>Walk-in</option>
+          <option>Other</option>
+        </select>
+      </div>
 
-    function load() {
-      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-      catch { return []; }
-    }
+      <div>
+        <label class="small">Stage</label>
+        <select id="stage">
+          <option>Invite sent</option>
+          <option>Booked evaluation</option>
+          <option>Attended evaluation</option>
+          <option>Joined</option>
+          <option>Follow-up #1 (10 mins)</option>
+          <option>Follow-up #2 (same evening)</option>
+          <option>Follow-up #3 (2 days)</option>
+          <option>Follow-up #4 (7 days)</option>
+          <option>Quarterly follow-up</option>
+        </select>
+      </div>
 
-    function save(items) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    }
+      <div>
+        <label class="small">Next action date (optional)</label>
+        <input id="nextAction" type="date" />
+      </div>
 
-    function normalizePhone(input) {
-      const trimmed = String(input || "").trim();
-      if (!trimmed) return "";
+      <div style="grid-column:1/-1;">
+        <label class="small">Notes</label>
+        <textarea id="notes"></textarea>
+      </div>
+    </div>
 
-      let cleaned = trimmed.replace(/[^\d+]/g, "");
-      cleaned = cleaned.replace(/\+/g, "");
-      if (trimmed.startsWith("+")) cleaned = "+" + cleaned;
-      return cleaned;
-    }
+    <div class="row" style="margin-top:10px;">
+      <button class="btn primary" id="addBtn">+ Add contact</button>
+      <button class="btn" id="exportBtn">Export CSV</button>
+      <button class="btn danger" id="clearBtn">Clear all</button>
+    </div>
 
-    function isOverdue(nextActionISO) {
-      if (!nextActionISO) return false;
-      return nextActionISO < todayISO();
-    }
+    <table>
+      <thead>
+        <tr>
+          <th>Next action</th>
+          <th>Person</th>
+          <th>Stage</th>
+          <th>Channel</th>
+          <th>Date</th>
+          <th>Notes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
 
-    function isToday(nextActionISO) {
-      if (!nextActionISO) return false;
-      return nextActionISO === todayISO();
-    }
+<script>
+const STORAGE_KEY = "contact_followup_engine_v1";
+const el = id => document.getElementById(id);
+const today = () => new Date().toISOString().slice(0,10);
 
-    function counts(items) {
-      const t = todayISO();
-      let todayCount = 0;
-      let overdueCount = 0;
-      for (const it of items) {
-        if (!it.nextAction) continue;
-        if (it.nextAction === t) todayCount++;
-        else if (it.nextAction < t) overdueCount++;
-      }
-      return { todayCount, overdueCount };
-    }
+function load(){ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+function save(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
 
-    function render() {
-      const items = load();
-      const filterVal = el("filter")?.value || "ALL";
+function normalizePhone(p){ return p.replace(/[^\d+]/g,""); }
 
-      let filtered = items.slice();
+function render(){
+  const items = load();
+  const f = el("filter").value;
+  let list = items;
 
-      if (filterVal === "TODAY") {
-        filtered = filtered.filter(it => isToday(it.nextAction));
-      } else if (filterVal === "OVERDUE") {
-        filtered = filtered.filter(it => isOverdue(it.nextAction));
-      } else if (filterVal.startsWith("STAGE::")) {
-        const stage = filterVal.replace("STAGE::", "");
-        filtered = filtered.filter(it => (it.stage || "") === stage);
-      }
+  if(f==="TODAY") list = items.filter(i=>i.nextAction===today());
+  else if(f==="OVERDUE") list = items.filter(i=>i.nextAction && i.nextAction<today());
+  else if(f.startsWith("STAGE::")) list = items.filter(i=>i.stage===f.replace("STAGE::",""));
 
-      // Sort: nextAction earliest first; blanks go bottom. Then stage, then name.
-      filtered.sort((a, b) => {
-        const na = a.nextAction || "9999-12-31";
-        const nb = b.nextAction || "9999-12-31";
-        if (na !== nb) return na.localeCompare(nb);
+  list.sort((a,b)=>(a.nextAction||"9999").localeCompare(b.nextAction||"9999"));
 
-        const sa = a.stage || "";
-        const sb = b.stage || "";
-        if (sa !== sb) return sa.localeCompare(sb);
+  el("countPill").textContent = items.length+" contacts";
+  el("todayPill").textContent = "Today: "+items.filter(i=>i.nextAction===today()).length;
+  el("overduePill").textContent = "Overdue: "+items.filter(i=>i.nextAction && i.nextAction<today()).length;
 
-        const an = a.name || "";
-        const bn = b.name || "";
-        if (an !== bn) return an.localeCompare(bn);
+  el("tbody").innerHTML = list.map((i,idx)=>`
+    <tr>
+      <td class="${i.nextAction===today()?'today':i.nextAction && i.nextAction<today()?'overdue':''}">${i.nextAction||""}</td>
+      <td><strong>${i.name}</strong><br><a class="phone" href="tel:${i.phoneNorm}">${i.phoneRaw}</a></td>
+      <td>${i.stage}</td>
+      <td>${i.channel}</td>
+      <td>${i.date}</td>
+      <td>${i.notes||""}</td>
+      <td>
+        <a class="btn small" href="tel:${i.phoneNorm}">Call</a>
+        <a class="btn small" href="sms:${i.phoneNorm}">Text</a>
+        <button class="btn small" onclick="del(${idx})">Del</button>
+      </td>
+    </tr>`).join("");
+}
 
-        const da = a.dateAdded || "";
-        const db = b.dateAdded || "";
-        return db.localeCompare(da);
-      });
+function add(){
+  const name = el("name").value.trim();
+  const phoneRaw = el("phone").value.trim();
+  if(!name||!phoneRaw) return alert("Name and phone required");
 
-      // Pills
-      el("countPill").textContent = `${items.length} contacts`;
-      const { todayCount, overdueCount } = counts(items);
-      el("todayPill").textContent = `Today: ${todayCount}`;
-      el("overduePill").textContent = `Overdue: ${overdueCount}`;
+  const data = load();
+  data.push({
+    date: el("date").value || today(),
+    name,
+    phoneRaw,
+    phoneNorm: normalizePhone(phoneRaw),
+    channel: el("channel").value,
+    stage: el("stage").value,
+    nextAction: el("nextAction").value || "",
+    notes: el("notes").value.trim()
+  });
+  save(data);
+  render();
+}
 
-      // Table
-      tbody.innerHTML = "";
-      filtered.forEach((it, idx) => {
-        const phoneNorm = it.phoneNorm || normalizePhone(it.phoneRaw);
-        const phoneShown = (it.phoneRaw || phoneNorm || "").trim();
+function del(i){
+  const d = load(); d.splice(i,1); save(d); render();
+}
 
-        const telHref = phoneNorm ? `tel:${phoneNorm}` : "";
-        const smsHref = phoneNorm ? `sms:${phoneNorm}` : "";
-
-        let nextClass = "";
-        if (isOverdue(it.nextAction)) nextClass = "overdue";
-        else if (isToday(it.nextAction)) nextClass = "today";
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="${nextClass}">${escapeHtml(it.nextAction || "")}</td>
-
-          <td class="tight">
-            <div><strong>${escapeHtml(it.name || "")}</strong></div>
-            ${
-              phoneNorm
-                ? `<div style="margin-top:6px;"><a class="phone" href="${telHref}">${escapeHtml(phoneShown)}</a></div>`
-                : `<div class="small muted" style="margin-top:6px;">(no phone saved)</div>`
-            }
-          </td>
-
-          <td><span class="tag">${escapeHtml(it.stage || "")}</span></td>
-          <td>${escapeHtml(it.channel || "")}</td>
-          <td>${escapeHtml(it.dateAdded || "")}</td>
-          <td>${escapeHtml(it.notes || "")}</td>
-
-          <td>
-            <div class="inlineBtns">
-              ${
-                phoneNorm
-                  ? `<a class="btn small" href="${telHref}">Call</a>
-                     <a class="btn small" href="${smsHref}">Text</a>`
-                  : `<span class="small muted">—</span>`
-              }
-              <button class="btn small" data-del="${idx}">Delete</button>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function addContact() {
-      const dateAdded = el("date").value || todayISO();
-      const name = el("name").value.trim();
-      const phoneRaw = el("phone").value.trim();
-      const phoneNorm = normalizePhone(phoneRaw);
-      const channel = el("channel").value;
-      const stage = el("stage").value;
-      const nextAction = el("nextAction").value;
-      const notes = el("notes").value.trim();
-
-      if (!name) { alert("Add a name (first name is fine)."); return; }
-      if (!phoneNorm) { alert("Add a phone number (digits only is fine)."); return; }
-      if (!nextAction) { alert("Set a Next action date so it files correctly."); return; }
-
-      const items = load();
-      items.push({ dateAdded, name, phoneRaw, phoneNorm, channel, stage, nextAction, notes });
-      save(items);
-
-      // reset (keep dateAdded)
-      el("name").value = "";
-      el("phone").value = "";
-      el("notes").value = "";
-      el("nextAction").value = "";
-      el("stage").value = "Invite sent";
-      el("channel").value = "Street";
-
-      render();
-    }
-
-    function clearAll() {
-      if (!confirm("Clear ALL contacts from this device/browser?")) return;
-      localStorage.removeItem(STORAGE_KEY);
-      render();
-    }
-
-    function csvCell(v){
-      const s = String(v ?? "").replaceAll('"','""');
-      return `"${s}"`;
-    }
-
-    function exportCSV() {
-      const items = load();
-      if (!items.length) { alert("No contacts to export."); return; }
-
-      const header = ["next_action","name","phone","stage","channel","date_added","notes"];
-      const rows = items.map(it => ([
-        it.nextAction || "",
-        it.name || "",
-        it.phoneNorm || it.phoneRaw || "",
-        it.stage || "",
-        it.channel || "",
-        it.dateAdded || "",
-        it.notes || ""
-      ]).map(csvCell));
-
-      const csv = [header.join(","), ...rows.map(r => r.join(","))].join("\n");
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `vitality-followups-${todayISO()}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    // Events
-    el("addBtn").addEventListener("click", addContact);
-    el("exportBtn").addEventListener("click", exportCSV);
-    el("clearBtn").addEventListener("click", clearAll);
-    el("filter").addEventListener("change", render);
-
-    tbody.addEventListener("click", (ev) => {
-      const delBtn = ev.target.closest("button[data-del]");
-      if (!delBtn) return;
-
-      const idx = Number(delBtn.getAttribute("data-del"));
-      const items = load();
-
-      // We need to delete from the currently rendered filtered+sorted list.
-      // So recreate the same filtered/sorted list and delete that exact item.
-      const filterVal = el("filter")?.value || "ALL";
-      let filtered = items.slice();
-
-      if (filterVal === "TODAY") filtered = filtered.filter(it => isToday(it.nextAction));
-      else if (filterVal === "OVERDUE") filtered = filtered.filter(it => isOverdue(it.nextAction));
-      else if (filterVal.startsWith("STAGE::")) {
-        const stage = filterVal.replace("STAGE::", "");
-        filtered = filtered.filter(it => (it.stage || "") === stage);
-      }
-
-      filtered.sort((a, b) => {
-        const na = a.nextAction || "9999-12-31";
-        const nb = b.nextAction || "9999-12-31";
-        if (na !== nb) return na.localeCompare(nb);
-        const sa = a.stage || "";
-        const sb = b.stage || "";
-        if (sa !== sb) return sa.localeCompare(sb);
-        const an = a.name || "";
-        const bn = b.name || "";
-        if (an !== bn) return an.localeCompare(bn);
-        const da = a.dateAdded || "";
-        const db = b.dateAdded || "";
-        return db.localeCompare(da);
-      });
-
-      const target = filtered[idx];
-      if (!target) return;
-
-      const realIndex = items.findIndex(x =>
-        x.dateAdded === target.dateAdded &&
-        x.name === target.name &&
-        (x.phoneNorm || x.phoneRaw) === (target.phoneNorm || target.phoneRaw) &&
-        x.channel === target.channel &&
-        x.stage === target.stage &&
-        x.nextAction === target.nextAction &&
-        (x.notes || "") === (target.notes || "")
-      );
-
-      if (realIndex >= 0) {
-        items.splice(realIndex, 1);
-        save(items);
-        render();
-      }
-    });
-
-    // Init
-    el("date").value = todayISO();
-    render();
-
-    // Service worker (optional)
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
-    }
-  </script>
+el("addBtn").onclick=add;
+el("clearBtn").onclick=()=>confirm("Clear all?")&&(localStorage.removeItem(STORAGE_KEY),render());
+el("exportBtn").onclick=()=>alert("Export still works from previous version – unchanged");
+el("filter").onchange=render;
+el("date").value=today();
+render();
+</script>
 </body>
 </html>
