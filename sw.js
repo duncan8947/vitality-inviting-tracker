@@ -1,4 +1,4 @@
-const CACHE_NAME = "sim-engine-internal-v12";
+const CACHE_NAME = "sim-engine-icon-final-v2";
 self.addEventListener("install", event => {
   self.skipWaiting();
 });
