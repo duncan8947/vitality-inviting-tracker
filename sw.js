@@ -1,4 +1,4 @@
-const CACHE_NAME = "vitality-tracker-v5";
+const CACHE_NAME = "vitality-tracker-v6";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
