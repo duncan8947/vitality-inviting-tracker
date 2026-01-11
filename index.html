@@ -1,586 +1,286 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Vitality Inviting Tracker</title>
-<style>
-  :root{
-    --bg:#0b1220; --card:#121a2a; --text:#e8eef7; --muted:#9fb0c6;
-    --border:rgba(255,255,255,.12); --soft:rgba(255,255,255,.05);
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
-  .container{max-width:1200px;margin:0 auto;padding:16px}
-  h1{margin:0 0 12px;font-size:26px}
-  .build{font-size:12px;opacity:.7;margin-left:8px;vertical-align:middle;border:1px solid rgba(255,255,255,.15);padding:2px 8px;border-radius:999px}
-  h2{margin:0 0 6px}
-  .small{color:var(--muted);font-size:13px}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;margin-bottom:12px}
-  .kpis{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-  .kpi{min-width:240px;flex:1;border:1px solid var(--border);border-radius:14px;padding:10px;background:rgba(255,255,255,.03)}
-  .kpi .big{font-size:22px;font-weight:900}
-  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
-  button{border:1px solid var(--border);background:var(--soft);color:var(--text);padding:6px 10px;border-radius:12px}
-  button:active{transform:translateY(1px)}
-  .danger{border-color:rgba(255,80,80,.4)}
-  .tableWrap{overflow:auto;border-radius:14px;border:1px solid var(--border);margin-top:10px}
-  table{width:100%;border-collapse:separate;border-spacing:0;min-width:980px}
-  thead th{
-    position:sticky;top:0;background:rgba(18,26,42,.98);
-    text-align:left;font-size:13px;color:var(--muted);
-    padding:10px;border-bottom:1px solid var(--border)
-  }
-  tbody td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:middle}
-  tbody tr:last-child td{border-bottom:none}
-  .metric{font-weight:800}
-  .pair{display:inline-flex;gap:8px;align-items:center;white-space:nowrap}
-  .num{font-weight:900;font-size:18px;min-width:36px;text-align:right;display:inline-block}
-  .pct{font-size:12px;color:var(--muted);margin-left:6px}
-  .tag{display:inline-block;border:1px solid rgba(255,255,255,.16);padding:2px 8px;border-radius:999px;font-size:12px;color:var(--muted)}
-  .note{font-size:12px;color:var(--muted);margin-top:8px}
-  .note ul{margin:6px 0 8px 18px;padding:0}
-  .note li{margin:4px 0}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b3d2e" />
+  <title>Vitality Nutrition – Inviting & Conversation Tracker</title>
+
+  <link rel="manifest" href="./manifest.json" />
+  <style>
+    :root { --bg:#0b0f14; --card:#111826; --muted:#9aa4b2; --text:#e6edf3; --line:#233041; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+    .header { display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+    h1 { margin:0; font-size: 20px; line-height:1.2; }
+    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .card { background: var(--card); border:1px solid var(--line); border-radius: 14px; padding: 12px; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .btn { border:1px solid var(--line); background:#0f172a; color:var(--text); padding:10px 12px; border-radius: 12px; font-weight:600; }
+    .btn:active { transform: scale(.99); }
+    .btn.primary { background: #0b3d2e; border-color:#0b3d2e; }
+    .btn.danger { background: #3a0f18; border-color:#5b1a27; }
+    .pill { padding:6px 10px; border-radius:999px; border:1px solid var(--line); color:var(--muted); font-size:12px; }
+    input, select, textarea {
+      width: 100%;
+      background:#0b1220; color:var(--text);
+      border:1px solid var(--line); border-radius: 12px;
+      padding: 10px;
+      outline: none;
+    }
+    textarea { min-height: 70px; resize: vertical; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width: 720px){ .grid { grid-template-columns: 1fr; } }
+    table { width:100%; border-collapse: collapse; margin-top: 10px; overflow:hidden; border-radius: 12px; }
+    th, td { padding:10px; border-bottom:1px solid var(--line); text-align:left; vertical-align: top; }
+    th { color:var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing:.06em; }
+    .small { font-size: 12px; color: var(--muted); }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .footer { margin-top: 10px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+  </style>
 </head>
 <body>
-<div class="container">
-  <h1>Vitality Inviting Tracker <span class="build">v1.2.4</span></h1>
-
-  <div class="card">
-    <h2>Overview</h2>
-    <div class="small">Daily edits only. Weekly/monthly totals calculate automatically. <span class="tag">Week: Mon–Sun</span></div>
-    <div class="kpis" id="overviewKpis"></div>
-    <div class="row">
-      <button id="exportCurrentBtn">Export current month snapshot</button>
-      <button id="exportPrevBtn">Export previous month snapshot</button>
-      <button class="danger" id="resetTodayBtn" title="Sets today's counters to 0 (does not delete past days)">Reset today</button>
-      <button class="danger" id="wipeAllBtn" title="Deletes ALL saved tracker data on this device">Wipe ALL data</button>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <h1>Vitality Nutrition – Inviting & Conversation Tracker</h1>
+        <div class="sub">Track invites, follow-ups, and outcomes. Saves automatically on this device.</div>
+      </div>
+      <div class="row">
+        <span class="pill" id="countPill">0 entries</span>
+        <span class="pill" id="weekPill">This week: 0</span>
+      </div>
     </div>
-    <div class="note">Tip: When a wellness evaluation gets booked, log it under the source. The total (all sources) is calculated automatically.</div>
-  </div>
 
-  <div class="card">
-    <h2>Street Inviting</h2>
-    <div class="small">Invites → numbers gained → wellness eval bookings. Track which follow-up closed the booking (#1–#4). Follow-up rows show % of bookings.</div>
-    <div class="tableWrap"><table>
-      <thead><tr><th style="min-width:380px">Metric</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead>
-      <tbody id="tbl_street"></tbody>
-    </table></div>
-  </div>
-
-  <div class="card">
-    <h2>Social Media Invites</h2>
-    <div class="small">Invites sent → wellness eval bookings. (Conversion visible in overview.)</div>
-    <div class="tableWrap"><table>
-      <thead><tr><th style="min-width:380px">Metric</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead>
-      <tbody id="tbl_social"></tbody>
-    </table></div>
-  </div>
-
-  <div class="card">
-    <h2>Guinea Pig Invites</h2>
-    <div class="small">Invites → wellness eval bookings. (Conversion visible in overview.)</div>
-    <div class="tableWrap"><table>
-      <thead><tr><th style="min-width:380px">Metric</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead>
-      <tbody id="tbl_guinea"></tbody>
-    </table></div>
-  </div>
-
-  <div class="card">
-    <h2>Social Media Adds</h2>
-    <div class="small">Track Facebook / Instagram adds. Total wellness eval bookings (all sources) is calculated automatically in Overview.</div>
-    <div class="tableWrap"><table>
-      <thead><tr><th style="min-width:380px">Metric</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead>
-      <tbody id="tbl_adds"></tbody>
-    </table></div>
-  </div>
-
-  <div class="card">
-    <h2>Sample Parties</h2>
-    <div class="small">Monthly focus: parties booked, attendees, and wellness eval bookings.</div>
-    <div class="tableWrap"><table>
-      <thead><tr><th style="min-width:380px">Metric</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead>
-      <tbody id="tbl_parties"></tbody>
-    </table></div>
-  </div>
-
-  <div class="card">
-    <h2>Referrals</h2>
-    <div class="small">Track how many referrals you receive (daily/weekly/monthly).</div>
-    <div class="tableWrap"><table>
-      <thead><tr><th style="min-width:380px">Metric</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead>
-      <tbody id="tbl_referrals"></tbody>
-    </table></div>
-  </div>
-
-<div class="card">
-    <h2>New Members</h2>
-    <div class="small">Track new memberships sold (10 visits vs 30 visits).</div>
-    <div class="tableWrap"><table>
-      <thead><tr><th style="min-width:380px">Metric</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead>
-      <tbody id="tbl_members"></tbody>
-    </table></div>
-  </div>
-
-<div class="card">
-    <h2>Coach Guidance</h2>
-    <div class="small">Use this tracker to stay consistent, spot your conversion rates, and avoid last‑minute “oh sh*t” moments.</div>
-    <div class="note">
-      <b>Daily (2 minutes):</b>
-      <ul>
-        <li>Log your inviting actions as they happen (tap +1).</li>
-        <li>When you take a phone number from street inviting, log it under <b>Phone numbers gained</b>.</li>
-        <li>When a wellness evaluation is booked, log it under the <b>source</b>. The overall total is calculated automatically.</li>
-        <li>For street bookings, also log which follow‑up closed it: <b>#1 / #2 / #3 / #4</b>.</li>
-      </ul>
-      <b>What counts as an “invite”?</b>
-      <ul>
-        <li><b>Street:</b> a real conversation where you offered a next step.</li>
-        <li><b>Social:</b> a real DM/invite message sent (not a like).</li>
-        <li><b>Guinea pig:</b> a direct invite to trial/support.</li>
-      </ul>
-      <b>Follow‑up numbers:</b> #1 is the first follow‑up after the initial invite, #2 the next, etc.
-      <br/><br/>
-      <b>Mindset:</b> This is not a “pressure tool”. It’s awareness. If you’re behind pace, you don’t panic — you adjust early.
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Inviting Pace Check</h2>
-    <div class="small">Month‑to‑date pace vs the same point last month (updates instantly).</div>
-    <div class="kpis" id="paceKpis"></div>
-    <div class="note">Uses: <b>Street invites + Social invites + Guinea pig invites</b>.</div>
-  </div>
-
-</div>
-
-<script>
-
-// --- Diagnostics ---
-(function(){
-  const banner=document.createElement('div');
-  banner.id='diagBanner';
-  banner.style.cssText='position:sticky;top:0;z-index:9999;background:#2b6; color:#001; padding:8px 10px; font:600 12px system-ui; display:none;';
-  banner.textContent='Vitality Tracker: script loaded ✅';
-  document.addEventListener('DOMContentLoaded', ()=>{ document.body.prepend(banner); banner.style.display='block'; });
-  window.addEventListener('error', (e)=>{ banner.style.display='block'; banner.style.background='#c33'; banner.style.color='#fff'; banner.textContent='Vitality Tracker error: '+(e.message||'unknown')+' (tap to copy)'; banner.onclick=()=>{ navigator.clipboard?.writeText('ERROR: '+(e.message||'unknown')); }; });
-})();
-
-  const KEY = "vitality_inviting_tracker_html_v1";
-
-  const METRICS = [
-    // Street inviting
-    {table:"tbl_street", id:"street_invites", label:"Street invites (conversations/invites)"},
-    {table:"tbl_street", id:"street_numbers", label:"Phone numbers gained (from street)"},
-    {table:"tbl_street", id:"street_we_booked", label:"Wellness evaluations booked (from street)"},
-    {table:"tbl_street", id:"street_we_fu1", label:"… booked on follow‑up #1", pctOf:"street_we_booked"},
-    {table:"tbl_street", id:"street_we_fu2", label:"… booked on follow‑up #2", pctOf:"street_we_booked"},
-    {table:"tbl_street", id:"street_we_fu3", label:"… booked on follow‑up #3", pctOf:"street_we_booked"},
-    {table:"tbl_street", id:"street_we_fu4", label:"… booked on follow‑up #4", pctOf:"street_we_booked"},
-
-    // Social invites
-    {table:"tbl_social", id:"social_invites", label:"Social media invites sent"},
-    {table:"tbl_social", id:"social_we_booked", label:"Wellness evaluations booked (from socials)"},
-
-    // Guinea pig
-    {table:"tbl_guinea", id:"guinea_invites", label:"Guinea pig invites"},
-    {table:"tbl_guinea", id:"guinea_we_booked", label:"Wellness evaluations booked (from guinea pig)"},
-
-    // Adds + total bookings
-    {table:"tbl_adds", id:"fb_adds", label:"Added on Facebook"},
-    {table:"tbl_adds", id:"ig_adds", label:"Added on Instagram"},
-    // Referrals
-    {table:"tbl_referrals", id:"referrals", label:"Referrals received"},
-
-    // New members
-    {table:"tbl_members", id:"members_10", label:"10‑visit membership (new)"},
-    {table:"tbl_members", id:"members_30", label:"30‑visit membership (new)"},
-
-    // Sample parties
-    {table:"tbl_parties", id:"parties_booked", label:"Sample parties booked"},
-    {table:"tbl_parties", id:"party_attendees", label:"Total attendees (all parties)"},
-    {table:"tbl_parties", id:"party_we_booked", label:"Wellness evaluations booked (from sample parties)"},
-  ];
-
-  function load(){ return JSON.parse(localStorage.getItem(KEY) || "{}"); }
-  function save(s){ localStorage.setItem(KEY, JSON.stringify(s)); }
-
-  const state = load();
-  const today = new Date().toISOString().slice(0,10);
-
-  function clamp0(n){ return Math.max(0, n|0); }
-
-  function ensureToday(){
-    state[today] = state[today] || {};
-    for(const m of METRICS){
-      if(state[today][m.id] == null) state[today][m.id] = 0;
-      state[today][m.id] = clamp0(state[today][m.id]);
-    }
-    save(state);
-  }
-  ensureToday();
-
-  function monthKey(d){ return d.toISOString().slice(0,7); } // YYYY-MM
-
-  function weekStartISO(d){
-    const dt = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const day = (dt.getDay() + 6) % 7; // Monday=0
-    dt.setDate(dt.getDate() - day);
-    return dt.toISOString().slice(0,10);
-  }
-  function isSameWeek(dateISO, refDate){
-    const d = new Date(dateISO + "T00:00:00");
-    return weekStartISO(d) === weekStartISO(refDate);
-  }
-
-  function bump(metricId, delta){
-    ensureToday();
-    state[today][metricId] = clamp0((state[today][metricId] || 0) + delta);
-    save(state);
-    render();
-  }
-
-  function computeTotals(metricId){
-    const now = new Date();
-    const curMonth = monthKey(now);
-    let weekly = 0, monthly = 0;
-    for(const [date, val] of Object.entries(state)){
-      const v = clamp0(val?.[metricId] || 0);
-      if(isSameWeek(date, now)) weekly += v;
-      if(date.startsWith(curMonth)) monthly += v;
-    }
-    const daily = clamp0(state[today]?.[metricId] || 0);
-    return {daily, weekly, monthly};
-  }
-
-  function computeCombinedTotals(metricIds){
-    const now=new Date();
-    const curMonth=monthKey(now);
-    let weekly=0, monthly=0;
-    for(const [date,val] of Object.entries(state)){
-      const v=sumMetricsForDate(val, metricIds);
-      if(isSameWeek(date, now)) weekly += v;
-      if(date.startsWith(curMonth)) monthly += v;
-    }
-    const daily = sumMetricsForDate(state[today]||{}, metricIds);
-    return {daily, weekly, monthly};
-  }
-
-
-  function pct(n, d){
-    if(!d) return 0;
-    return Math.round((n/d)*100);
-  }
-
-  function buildRow(metric){
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="metric">${metric.label}</td>
-      <td id="d_${metric.id}"></td>
-      <td id="w_${metric.id}"><span class="num">0</span></td>
-      <td id="m_${metric.id}"><span class="num">0</span></td>
-    `;
-    return tr;
-  }
-
-  function dailyControl(metricId, value, extraPctText){
-    const wrap = document.createElement("div");
-    wrap.className = "pair";
-    const minus = document.createElement("button");
-    minus.className = "btnMinus";
-    minus.textContent = "-1";
-    minus.onclick = ()=>bump(metricId, -1);
-
-    const num = document.createElement("span");
-    num.className = "num";
-    num.textContent = value;
-
-    const plus = document.createElement("button");
-    plus.textContent = "+1";
-    plus.onclick = ()=>bump(metricId, +1);
-
-    wrap.appendChild(minus); wrap.appendChild(num); wrap.appendChild(plus);
-
-    if(extraPctText){
-      const p = document.createElement("span");
-      p.className = "pct";
-      p.textContent = extraPctText;
-      wrap.appendChild(p);
-    }
-    return wrap;
-  }
-
-  function renderTable(){
-    const tableIds = [...new Set(METRICS.map(m=>m.table))];
-    for(const tid of tableIds){
-      const tbody = document.getElementById(tid);
-      tbody.innerHTML = "";
-      METRICS.filter(m=>m.table===tid).forEach(m=>tbody.appendChild(buildRow(m)));
-    }
-
-    const denomStreet = computeTotals("street_we_booked");
-
-    for(const m of METRICS){
-      const t = computeTotals(m.id);
-
-      const dailyCell = document.getElementById("d_" + m.id);
-      dailyCell.innerHTML = "";
-
-      if(m.pctOf === "street_we_booked"){
-        const dailyPct = `(${pct(t.daily, denomStreet.daily)}%)`;
-        dailyCell.appendChild(dailyControl(m.id, t.daily, dailyPct));
-
-        document.getElementById("w_"+m.id).innerHTML =
-          `<span class="num">${t.weekly}</span><span class="pct">(${pct(t.weekly, denomStreet.weekly)}%)</span>`;
-        document.getElementById("m_"+m.id).innerHTML =
-          `<span class="num">${t.monthly}</span><span class="pct">(${pct(t.monthly, denomStreet.monthly)}%)</span>`;
-      } else {
-        dailyCell.appendChild(dailyControl(m.id, t.daily));
-        document.getElementById("w_"+m.id).innerHTML = `<span class="num">${t.weekly}</span>`;
-        document.getElementById("m_"+m.id).innerHTML = `<span class="num">${t.monthly}</span>`;
-      }
-    }
-  }
-
-  function renderOverview(){
-    const k = document.getElementById("overviewKpis");
-    k.innerHTML = "";
-
-    const weAll = computeCombinedTotals(["street_we_booked","social_we_booked","guinea_we_booked","party_we_booked"]);
-
-    const streetInv = computeTotals("street_invites");
-    const streetNum = computeTotals("street_numbers");
-    const streetWe  = computeTotals("street_we_booked");
-
-    const socialInv = computeTotals("social_invites");
-    const socialWe  = computeTotals("social_we_booked");
-
-    const guineaInv = computeTotals("guinea_invites");
-    const guineaWe  = computeTotals("guinea_we_booked");
-
-    const fb = computeTotals("fb_adds");
-    const ig = computeTotals("ig_adds");
-    const referrals = computeTotals("referrals");
-    const m10 = computeTotals("members_10");
-    const m30 = computeTotals("members_30");
-
-    function kpi(title, big, sub){
-      const d = document.createElement("div");
-      d.className = "kpi";
-      d.innerHTML = `<div class="small">${title}</div><div class="big">${big}</div><div class="small">${sub}</div>`;
-      return d;
-    }
-
-    const streetNumRate = streetInv.monthly ? pct(streetNum.monthly, streetInv.monthly) : 0;
-    const streetBookRate = streetNum.monthly ? pct(streetWe.monthly, streetNum.monthly) : 0;
-
-    const socialBookRate = socialInv.monthly ? pct(socialWe.monthly, socialInv.monthly) : 0;
-    const guineaBookRate = guineaInv.monthly ? pct(guineaWe.monthly, guineaInv.monthly) : 0;
-
-    k.appendChild(kpi(
-      "Total wellness eval bookings (month)",
-      weAll.monthly,
-      `Week: ${weAll.weekly} • Today: ${weAll.daily}`
-    ));
-
-    k.appendChild(kpi(
-      "New members (month)",
-      (m10.monthly + m30.monthly),
-      `10‑visit: ${m10.monthly} • 30‑visit: ${m30.monthly}`
-    ));
-
-    k.appendChild(kpi(
-      "Street (month)",
-      `${streetInv.monthly} invites`,
-      `${streetNum.monthly} numbers (${streetNumRate}%) • ${streetWe.monthly} bookings (${streetBookRate}% of numbers)`
-    ));
-
-    k.appendChild(kpi(
-      "Social (month)",
-      `${socialInv.monthly} invites`,
-      `${socialWe.monthly} bookings (${socialBookRate}%)`
-    ));
-
-    k.appendChild(kpi(
-      "Guinea pig (month)",
-      `${guineaInv.monthly} invites`,
-      `${guineaWe.monthly} bookings (${guineaBookRate}%)`
-    ));
-
-    k.appendChild(kpi(
-      "Social adds (month)",
-      (fb.monthly + ig.monthly),
-      `FB: ${fb.monthly} • IG: ${ig.monthly}`
-    ));
-
-    k.appendChild(kpi(
-      "Referrals (month)",
-      referrals.monthly,
-      `Week: ${referrals.weekly} • Today: ${referrals.daily}`
-    ));
-
-      }
-
-  
-  function monthKeyFromISO(iso){ return iso.slice(0,7); }
-  function dayFromISO(iso){ return parseInt(iso.slice(8,10),10); }
-
-  function sumMetricsForDate(val, metricIds){
-    let t=0;
-    for(const id of metricIds){ t += clamp0(val?.[id]||0); }
-    return t;
-  }
-
-  function monthToDateSum(metricIds, month, dayLimit){
-    let total=0;
-    for(const [date,val] of Object.entries(state)){
-      if(monthKeyFromISO(date)!==month) continue;
-      if(dayLimit!=null && dayFromISO(date)>dayLimit) continue;
-      total += sumMetricsForDate(val, metricIds);
-    }
-    return total;
-  }
-
-  
-  
-  function renderPace(){
-    const box=document.getElementById("paceKpis");
-    if(!box) return;
-    box.innerHTML="";
-
-    const now=new Date();
-    const curMonth = monthKey(now);
-    const prevMonth = monthKey(new Date(now.getFullYear(), now.getMonth()-1, 1));
-    const day = now.getDate();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-
-    function paceRow(title, metricIds){
-      const cur = monthToDateSum(metricIds, curMonth, day);
-      const prev = monthToDateSum(metricIds, prevMonth, day);
-      const diff = cur - prev;
-      const status = diff>=0 ? "✅ Ahead of pace" : "⚠️ Behind pace";
-      const diffText = diff>=0 ? `+${diff}` : `${diff}`;
-
-      const dailyAvg = day > 0 ? cur / day : 0;
-      const projected = Math.round(dailyAvg * daysInMonth);
-
-      const d=document.createElement("div");
-      d.className="kpi";
-      d.innerHTML = `
-        <div class="small">${title}</div>
-        <div class="big">${cur}</div>
-        <div class="small">
-          Same point last month: ${prev} • ${status} (${diffText})<br/>
-          Projection (current pace): ~${projected}
+    <div class="card" style="margin-top:12px;">
+      <div class="grid">
+        <div>
+          <label class="small">Date</label>
+          <input id="date" type="date" />
         </div>
-      `;
-      box.appendChild(d);
+        <div>
+          <label class="small">Name</label>
+          <input id="name" placeholder="e.g. Sarah" />
+        </div>
+
+        <div>
+          <label class="small">Channel</label>
+          <select id="channel">
+            <option>Street</option>
+            <option>Instagram</option>
+            <option>Facebook</option>
+            <option>Referral</option>
+            <option>Walk-in</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="small">Stage</label>
+          <select id="stage">
+            <option>Invite sent</option>
+            <option>Replied</option>
+            <option>Booked evaluation</option>
+            <option>Attended evaluation</option>
+            <option>Joined</option>
+            <option>No response</option>
+            <option>Not now</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <label class="small">Notes</label>
+        <textarea id="notes" placeholder="Anything useful: goals, objections, follow-up date/time, etc."></textarea>
+      </div>
+
+      <div class="footer">
+        <div class="row">
+          <button class="btn primary" id="addBtn">+ Add entry</button>
+          <button class="btn" id="exportBtn">Export CSV</button>
+        </div>
+        <div class="actions">
+          <button class="btn danger" id="clearBtn">Clear all</button>
+        </div>
+      </div>
+
+      <table aria-label="Entries table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Channel</th>
+            <th>Stage</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+
+      <div class="small" style="margin-top:10px;">
+        Tip: Keep it simple — one entry per meaningful touchpoint (invite, follow-up, booked, attended, joined).
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "vitality_inviting_entries_v1";
+
+    const el = (id) => document.getElementById(id);
+    const tbody = el("tbody");
+    const countPill = el("countPill");
+    const weekPill = el("weekPill");
+
+    function todayISO() {
+      const d = new Date();
+      const off = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - off * 60000);
+      return local.toISOString().slice(0,10);
     }
 
-    paceRow("Inviting pace (Street + Social + Guinea pig)", ["street_invites","social_invites","guinea_invites"]);
-    paceRow("Referrals pace", ["referrals"]);
-    paceRow("New members pace (10 + 30 visits)", ["members_10","members_30"]);
-  }
+    function load() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
 
+    function save(entries) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
 
-    paceRow("Inviting pace (Street + Social + Guinea pig)", ["street_invites","social_invites","guinea_invites"]);
-    paceRow("Referrals pace", ["referrals"]);
-    paceRow("New members pace (10 + 30 visits)", ["members_10","members_30"]);
-  }
+    function weekCount(entries) {
+      const now = new Date();
+      const day = (now.getDay() + 6) % 7; // Mon=0
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - day);
+      monday.setHours(0,0,0,0);
 
+      return entries.filter(e => {
+        const dt = new Date(e.date + "T00:00:00");
+        return dt >= monday;
+      }).length;
+    }
 
-    box.appendChild(kpi("This month so far", curMTD, "Invites logged (MTD)"));
-    box.appendChild(kpi("Same point last month", prevSamePoint, "Invites logged (MTD last month)"));
-    box.appendChild(kpi(status, diffText, "Difference vs same point"));
-  }
+    function render() {
+      const entries = load();
+      tbody.innerHTML = "";
 
+      entries
+        .slice()
+        .sort((a,b) => (b.date || "").localeCompare(a.date || ""))
+        .forEach((e, idx) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${e.date || ""}</td>
+            <td>${escapeHtml(e.name || "")}</td>
+            <td>${escapeHtml(e.channel || "")}</td>
+            <td>${escapeHtml(e.stage || "")}</td>
+            <td>${escapeHtml(e.notes || "")}</td>
+            <td><button class="btn" data-del="${idx}">Delete</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
 
-  function exportSnapshotForMonth(month){
-    // Builds a simple CSV snapshot for a given YYYY-MM month
-    const rows=[["Metric","Month total"]];
+      countPill.textContent = `${entries.length} entries`;
+      weekPill.textContent = `This week: ${weekCount(entries)}`;
+    }
 
-    function sum(ids){
-      let t=0;
-      for(const [d,v] of Object.entries(state)){
-        if(d.startsWith(month)){
-          for(const id of ids){ t += clamp0(v?.[id]||0); }
-        }
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function addEntry() {
+      const date = el("date").value || todayISO();
+      const name = el("name").value.trim();
+      const channel = el("channel").value;
+      const stage = el("stage").value;
+      const notes = el("notes").value.trim();
+
+      if (!name) {
+        alert("Add a name (even if it’s just a first name).");
+        return;
       }
-      return t;
+
+      const entries = load();
+      entries.push({ date, name, channel, stage, notes });
+      save(entries);
+
+      // reset fields (keep date)
+      el("name").value = "";
+      el("notes").value = "";
+      el("stage").value = "Invite sent";
+      el("channel").value = "Street";
+
+      render();
     }
 
-    // Inviting
-    rows.push(["Street invites", sum(["street_invites"])]);
-    rows.push(["Social invites", sum(["social_invites"])]);
-    rows.push(["Guinea pig invites", sum(["guinea_invites"])]);
-    rows.push(["TOTAL invites (street+social+guinea)", sum(["street_invites","social_invites","guinea_invites"])]);
-
-    // Street conversions
-    rows.push(["Street phone numbers gained", sum(["street_numbers"])]);
-    rows.push(["Street WE bookings", sum(["street_we_booked"])]);
-    rows.push(["Street bookings on follow-up #1", sum(["street_we_fu1"])]);
-    rows.push(["Street bookings on follow-up #2", sum(["street_we_fu2"])]);
-    rows.push(["Street bookings on follow-up #3", sum(["street_we_fu3"])]);
-    rows.push(["Street bookings on follow-up #4", sum(["street_we_fu4"])]);
-
-    // Other WE bookings
-    rows.push(["Social WE bookings", sum(["social_we_booked"])]);
-    rows.push(["Guinea pig WE bookings", sum(["guinea_we_booked"])]);
-    rows.push(["Sample party WE bookings", sum(["party_we_booked"])]);
-    rows.push(["TOTAL wellness evaluations booked (all sources)", sum(["street_we_booked","social_we_booked","guinea_we_booked","party_we_booked"])]);
-
-    // Referrals + members
-    rows.push(["Referrals received", sum(["referrals"])]);
-    rows.push(["New members - 10 visit", sum(["members_10"])]);
-    rows.push(["New members - 30 visit", sum(["members_30"])]);
-    rows.push(["TOTAL new members", sum(["members_10","members_30"])]);
-
-    // Social adds
-    rows.push(["Facebook adds", sum(["fb_adds"])]);
-    rows.push(["Instagram adds", sum(["ig_adds"])]);
-    rows.push(["TOTAL social adds", sum(["fb_adds","ig_adds"])]);
-
-    // Sample parties
-    rows.push(["Sample parties booked", sum(["party_booked"])]);
-    rows.push(["Sample party attendees", sum(["party_attendees"])]);
-
-    const csv = rows.map(r=>r.map(x=>String(x).replace(/\n/g,' ')).join(",")).join("\n");
-    const blob = new Blob([csv],{type:"text/csv"});
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    a.download=`Vitality_Monthly_Snapshot_${month}.csv`;
-    a.click();
-  }
-function render(){
-    renderTable();
-    renderOverview();
-    renderPace();
-  }
-
-  document.getElementById("exportCurrentBtn").onclick = ()=>exportSnapshotForMonth(monthKey(new Date()));
-  document.getElementById("exportPrevBtn").onclick = ()=>{
-    const d=new Date();
-    exportSnapshotForMonth(monthKey(new Date(d.getFullYear(), d.getMonth()-1, 1)));
-  };
-
-  document.getElementById("resetTodayBtn").onclick = ()=>{
-    if(!confirm("Reset today only? (Sets today's counters to 0)")) return;
-    ensureToday();
-    for(const m of METRICS){
-      state[today][m.id] = 0;
+    function clearAll() {
+      if (!confirm("Clear all entries from this device?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      render();
     }
-    save(state);
+
+    function exportCSV() {
+      const entries = load();
+      if (!entries.length) { alert("No entries to export."); return; }
+
+      const header = ["date","name","channel","stage","notes"];
+      const rows = entries.map(e => header.map(k => csvCell(e[k] ?? "")));
+      const csv = [header.join(","), ...rows.map(r => r.join(","))].join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `vitality-inviting-tracker-${todayISO()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function csvCell(v){
+      const s = String(v).replaceAll('"','""');
+      return `"${s}"`;
+    }
+
+    // Events
+    el("addBtn").addEventListener("click", addEntry);
+    el("exportBtn").addEventListener("click", exportCSV);
+    el("clearBtn").addEventListener("click", clearAll);
+
+    tbody.addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button[data-del]");
+      if (!btn) return;
+      const idx = Number(btn.getAttribute("data-del"));
+      const entries = load();
+      // because we sort for display, simplest is delete by re-render index mapping:
+      // We'll delete the oldest matching by reconstructing sorted list mapping.
+      const sorted = entries.slice().sort((a,b) => (b.date || "").localeCompare(a.date || ""));
+      const toDelete = sorted[idx];
+      const realIndex = entries.findIndex(x =>
+        x.date === toDelete.date && x.name === toDelete.name && x.channel === toDelete.channel && x.stage === toDelete.stage && x.notes === toDelete.notes
+      );
+      if (realIndex >= 0) entries.splice(realIndex, 1);
+      save(entries);
+      render();
+    });
+
+    // init
+    el("date").value = todayISO();
     render();
-  };
 
-  document.getElementById("wipeAllBtn").onclick = ()=>{
-    if(!confirm("This will delete ALL tracker data on this device. Continue?")) return;
-    localStorage.removeItem(KEY);
-    location.reload();
-  };
-
-  render();
-</script>
+    // register service worker (optional)
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+  </script>
 </body>
 </html>
