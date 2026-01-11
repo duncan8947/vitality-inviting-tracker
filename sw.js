@@ -1,4 +1,4 @@
-const CACHE_NAME = "vitality-tracker-v300";
+const CACHE_NAME = "contact-engine-v400";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
