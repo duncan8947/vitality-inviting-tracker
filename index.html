@@ -4,223 +4,236 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b3d2e" />
-  <title>Contact Database & Follow-Up Engine</title>
+
+  <title>SIM Follow-Up Engine — Internal</title>
 
   <link rel="manifest" href="./manifest.json" />
+
   <style>
-    :root { --bg:#0b0f14; --card:#111826; --muted:#9aa4b2; --text:#e6edf3; --line:#233041; }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
-    .header { display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
-    h1 { margin:0; font-size: 20px; }
-    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
-    .card { background: var(--card); border:1px solid var(--line); border-radius: 14px; padding: 12px; }
-    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .btn { border:1px solid var(--line); background:#0f172a; color:var(--text); padding:10px 12px; border-radius: 12px; font-weight:700; cursor:pointer; }
-    .btn.primary { background: #0b3d2e; border-color:#0b3d2e; }
-    .btn.danger { background: #3a0f18; border-color:#5b1a27; }
-    .btn.small { padding:7px 10px; border-radius: 10px; font-weight:800; }
-    .pill { padding:6px 10px; border-radius:999px; border:1px solid var(--line); color:var(--muted); font-size:12px; }
-    input, select, textarea {
-      width: 100%;
-      background:#0b1220; color:var(--text);
-      border:1px solid var(--line); border-radius: 12px;
-      padding: 10px;
-      outline: none;
+    :root {
+      --bg:#0b0f14; --card:#111826; --muted:#9aa4b2;
+      --text:#e6edf3; --line:#233041; --brand:#0b3d2e;
     }
-    textarea { min-height: 70px; resize: vertical; }
-    .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
-    @media (max-width: 900px){ .grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 720px){ .grid { grid-template-columns: 1fr; } }
-    table { width:100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { padding:10px; border-bottom:1px solid var(--line); text-align:left; }
-    th { color:var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
-    .overdue { color:#ffb4b4; font-weight:900; }
-    .today { color:#b9ffcc; font-weight:900; }
-    a.phone { color:var(--text); font-weight:900; text-decoration:underline; }
-    .topControls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:var(--bg);color:var(--text)
+    }
+    .wrap{max-width:1150px;margin:0 auto;padding:16px}
+    h1{margin:0;font-size:20px}
+    .sub{color:var(--muted);font-size:13px;margin-top:4px}
+    .card{
+      background:var(--card);border:1px solid var(--line);
+      border-radius:14px;padding:12px
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .btn{
+      border:1px solid var(--line);background:#0f172a;color:var(--text);
+      padding:10px 12px;border-radius:12px;font-weight:800;cursor:pointer
+    }
+    .btn.primary{background:var(--brand);border-color:var(--brand)}
+    .btn.danger{background:#3a0f18;border-color:#5b1a27}
+    .btn.small{padding:7px 10px;border-radius:10px;font-weight:900}
+    .pill{
+      padding:6px 10px;border-radius:999px;border:1px solid var(--line);
+      color:var(--muted);font-size:12px
+    }
+    input,select,textarea{
+      width:100%;background:#0b1220;color:var(--text);
+      border:1px solid var(--line);border-radius:12px;padding:10px
+    }
+    textarea{min-height:70px;resize:vertical}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:720px){.grid{grid-template-columns:1fr}}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left}
+    th{font-size:12px;text-transform:uppercase;color:var(--muted)}
+    .today{color:#b9ffcc;font-weight:900}
+    .overdue{color:#ffb4b4;font-weight:900}
+    a.phone{color:var(--text);font-weight:900;text-decoration:underline}
+    .footer{
+      margin-top:14px;padding-top:10px;border-top:1px solid var(--line);
+      font-size:12px;color:var(--muted);text-align:center
+    }
+
+    /* Gate */
+    .gateBackdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,.75);
+      display:flex;align-items:center;justify-content:center;z-index:9999
+    }
+    .gate{
+      width:min(520px,100%);background:var(--card);
+      border:1px solid var(--line);border-radius:16px;padding:14px
+    }
+    .gate h2{margin:0;font-size:18px}
+    .err{color:#ffb4b4;font-weight:800;display:none;margin-top:8px}
+
+    /* Modal */
+    .modalBackdrop{
+      position:fixed;inset:0;background:rgba(0,0,0,.65);
+      display:none;align-items:center;justify-content:center;z-index:9998
+    }
+    .modal{
+      width:min(900px,100%);background:var(--card);
+      border:1px solid var(--line);border-radius:16px;padding:12px
+    }
+    .panel{
+      margin-top:10px;border:1px dashed var(--line);
+      border-radius:14px;padding:10px
+    }
   </style>
 </head>
-<body>
-<div class="wrap">
 
-  <div class="header">
-    <div>
-      <h1>Contact Database & Follow-Up Engine</h1>
-      <div class="sub">Simple contact database with tap-to-call, follow-up stages, and optional next actions.</div>
+<body>
+
+<!-- DAILY PIN GATE -->
+<div class="gateBackdrop" id="gate">
+  <div class="gate">
+    <h2>SIM Follow-Up Engine</h2>
+    <div class="sub">The Street Inviting Execution System</div>
+
+    <div class="row" style="margin-top:12px">
+      <input id="pinInput" placeholder="Enter team PIN" inputmode="numeric">
+      <button class="btn primary" id="pinBtn">Unlock</button>
     </div>
 
-    <div class="topControls">
-      <span class="pill" id="countPill">0 contacts</span>
-      <span class="pill" id="todayPill">Today: 0</span>
-      <span class="pill" id="overduePill">Overdue: 0</span>
+    <div class="err" id="pinErr">Incorrect PIN</div>
 
-      <select id="filter">
-        <option value="ALL">All contacts</option>
-        <option value="TODAY">Next action: Today</option>
-        <option value="OVERDUE">Next action: Overdue</option>
-        <option value="STAGE::Invite sent">Stage: Invite sent</option>
-        <option value="STAGE::Booked evaluation">Stage: Booked evaluation</option>
-        <option value="STAGE::Attended evaluation">Stage: Attended evaluation</option>
-        <option value="STAGE::Joined">Stage: Joined</option>
-        <option value="STAGE::Follow-up #1 (10 mins)">Follow-up #1</option>
-        <option value="STAGE::Follow-up #2 (same evening)">Follow-up #2</option>
-        <option value="STAGE::Follow-up #3 (2 days)">Follow-up #3</option>
-        <option value="STAGE::Follow-up #4 (7 days)">Follow-up #4</option>
-        <option value="STAGE::Quarterly follow-up">Quarterly follow-up</option>
-      </select>
+    <div class="sub" style="margin-top:12px">
+      <strong>Licensed Use Notice</strong><br>
+      This tool forms part of the <em>Street Inviting Method (SIM)</em> system.<br>
+      Licensed for use by <strong>active Vitality Nutrition coaches only</strong>.<br>
+      Unauthorised copying, sharing, or reproduction is prohibited.<br><br>
+      © Duncan Thorne / Vitality Nutrition
     </div>
   </div>
+</div>
 
-  <div class="card" style="margin-top:12px;">
+<div class="wrap" id="app" style="display:none">
+
+  <h1>SIM Follow-Up Engine</h1>
+  <div class="sub">
+    The Street Inviting Execution System · <strong>Internal</strong>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+
     <div class="grid">
-      <div>
-        <label class="small">Date added</label>
-        <input id="date" type="date" />
-      </div>
-
-      <div>
-        <label class="small">Name</label>
-        <input id="name" />
-      </div>
-
-      <div>
-        <label class="small">Phone number</label>
-        <input id="phone" inputmode="tel" />
-      </div>
-
-      <div>
-        <label class="small">Channel</label>
-        <select id="channel">
-          <option>Street</option>
-          <option>Instagram</option>
-          <option>Facebook</option>
-          <option>Referral</option>
-          <option>Walk-in</option>
-          <option>Other</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="small">Stage</label>
-        <select id="stage">
-          <option>Invite sent</option>
-          <option>Booked evaluation</option>
-          <option>Attended evaluation</option>
-          <option>Joined</option>
-          <option>Follow-up #1 (10 mins)</option>
-          <option>Follow-up #2 (same evening)</option>
-          <option>Follow-up #3 (2 days)</option>
-          <option>Follow-up #4 (7 days)</option>
-          <option>Quarterly follow-up</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="small">Next action date (optional)</label>
-        <input id="nextAction" type="date" />
-      </div>
-
-      <div style="grid-column:1/-1;">
-        <label class="small">Notes</label>
-        <textarea id="notes"></textarea>
-      </div>
+      <input id="name" placeholder="Name">
+      <input id="phone" placeholder="Phone">
+      <select id="stage">
+        <option>Invite sent</option>
+        <option>Follow-up #1 (10 mins)</option>
+        <option>Follow-up #2 (same evening)</option>
+        <option>Follow-up #3 (2 days)</option>
+        <option>Follow-up #4 (7 days)</option>
+        <option>Booked evaluation</option>
+        <option>Attended evaluation</option>
+        <option>Joined</option>
+        <option>Quarterly follow-up</option>
+      </select>
+      <input id="nextAction" type="date" placeholder="Next action (optional)">
+      <textarea id="notes" placeholder="Notes"></textarea>
     </div>
 
-    <div class="row" style="margin-top:10px;">
-      <button class="btn primary" id="addBtn">+ Add contact</button>
-      <button class="btn" id="exportBtn">Export CSV</button>
-      <button class="btn danger" id="clearBtn">Clear all</button>
+    <div class="row" style="margin-top:10px">
+      <button class="btn primary" id="addBtn">Add Contact</button>
     </div>
 
     <table>
       <thead>
         <tr>
-          <th>Next action</th>
-          <th>Person</th>
-          <th>Stage</th>
-          <th>Channel</th>
-          <th>Date</th>
-          <th>Notes</th>
-          <th>Actions</th>
+          <th>Next</th><th>Contact</th><th>Stage</th><th>Notes</th><th></th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
     </table>
+
+    <div class="footer">
+      © SIM Follow-Up Engine — The Street Inviting Execution System<br>
+      Intellectual property of <strong>Duncan Thorne / Vitality Nutrition</strong><br>
+      Licensed for active coaches only
+    </div>
   </div>
 </div>
 
 <script>
-const STORAGE_KEY = "contact_followup_engine_v1";
-const el = id => document.getElementById(id);
+const TEAM_PIN = "1978"; // CHANGE THIS WHEN NEEDED
+const UNLOCK_KEY = "SIM_UNLOCK_DATE";
+const STORAGE_KEY = "SIM_ENGINE_INTERNAL";
+
 const today = () => new Date().toISOString().slice(0,10);
+const el = id => document.getElementById(id);
 
-function load(){ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
-function save(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+function unlockedToday(){
+  return localStorage.getItem(UNLOCK_KEY) === today();
+}
 
-function normalizePhone(p){ return p.replace(/[^\d+]/g,""); }
+function unlock(){
+  if(el("pinInput").value === TEAM_PIN){
+    localStorage.setItem(UNLOCK_KEY, today());
+    el("gate").style.display="none";
+    el("app").style.display="block";
+  } else {
+    el("pinErr").style.display="block";
+  }
+}
+
+function lock(){
+  localStorage.removeItem(UNLOCK_KEY);
+  el("gate").style.display="flex";
+  el("app").style.display="none";
+}
+
+function load(){
+  return JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
+}
+function save(d){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+}
 
 function render(){
-  const items = load();
-  const f = el("filter").value;
-  let list = items;
-
-  if(f==="TODAY") list = items.filter(i=>i.nextAction===today());
-  else if(f==="OVERDUE") list = items.filter(i=>i.nextAction && i.nextAction<today());
-  else if(f.startsWith("STAGE::")) list = items.filter(i=>i.stage===f.replace("STAGE::",""));
-
-  list.sort((a,b)=>(a.nextAction||"9999").localeCompare(b.nextAction||"9999"));
-
-  el("countPill").textContent = items.length+" contacts";
-  el("todayPill").textContent = "Today: "+items.filter(i=>i.nextAction===today()).length;
-  el("overduePill").textContent = "Overdue: "+items.filter(i=>i.nextAction && i.nextAction<today()).length;
-
-  el("tbody").innerHTML = list.map((i,idx)=>`
+  const data = load();
+  el("tbody").innerHTML = data.map((c,i)=>`
     <tr>
-      <td class="${i.nextAction===today()?'today':i.nextAction && i.nextAction<today()?'overdue':''}">${i.nextAction||""}</td>
-      <td><strong>${i.name}</strong><br><a class="phone" href="tel:${i.phoneNorm}">${i.phoneRaw}</a></td>
-      <td>${i.stage}</td>
-      <td>${i.channel}</td>
-      <td>${i.date}</td>
-      <td>${i.notes||""}</td>
-      <td>
-        <a class="btn small" href="tel:${i.phoneNorm}">Call</a>
-        <a class="btn small" href="sms:${i.phoneNorm}">Text</a>
-        <button class="btn small" onclick="del(${idx})">Del</button>
-      </td>
-    </tr>`).join("");
+      <td class="${c.nextAction===today()?'today':(c.nextAction&&c.nextAction<today()?'overdue':'')}">${c.nextAction||""}</td>
+      <td><strong>${c.name}</strong><br><a class="phone" href="tel:${c.phone}">${c.phone}</a></td>
+      <td>${c.stage}</td>
+      <td>${c.notes||""}</td>
+      <td><button class="btn small" onclick="del(${i})">Del</button></td>
+    </tr>
+  `).join("");
 }
 
 function add(){
-  const name = el("name").value.trim();
-  const phoneRaw = el("phone").value.trim();
-  if(!name||!phoneRaw) return alert("Name and phone required");
-
-  const data = load();
-  data.push({
-    date: el("date").value || today(),
-    name,
-    phoneRaw,
-    phoneNorm: normalizePhone(phoneRaw),
-    channel: el("channel").value,
+  const d = load();
+  d.push({
+    name: el("name").value,
+    phone: el("phone").value,
     stage: el("stage").value,
-    nextAction: el("nextAction").value || "",
-    notes: el("notes").value.trim()
+    nextAction: el("nextAction").value,
+    notes: el("notes").value
   });
-  save(data);
+  save(d);
+  el("name").value=el("phone").value=el("notes").value="";
+  el("nextAction").value="";
   render();
 }
 
 function del(i){
-  const d = load(); d.splice(i,1); save(d); render();
+  const d = load();
+  d.splice(i,1);
+  save(d);render();
 }
 
+el("pinBtn").onclick=unlock;
 el("addBtn").onclick=add;
-el("clearBtn").onclick=()=>confirm("Clear all?")&&(localStorage.removeItem(STORAGE_KEY),render());
-el("exportBtn").onclick=()=>alert("Export still works from previous version – unchanged");
-el("filter").onchange=render;
-el("date").value=today();
+
+if(unlockedToday()){
+  el("gate").style.display="none";
+  el("app").style.display="block";
+}
 render();
 </script>
 </body>
