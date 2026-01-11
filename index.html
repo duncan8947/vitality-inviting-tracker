@@ -4,237 +4,817 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b3d2e" />
-
   <title>SIM Follow-Up Engine — Internal</title>
 
   <link rel="manifest" href="./manifest.json" />
 
   <style>
-    :root {
-      --bg:#0b0f14; --card:#111826; --muted:#9aa4b2;
-      --text:#e6edf3; --line:#233041; --brand:#0b3d2e;
+    :root { --bg:#0b0f14; --card:#111826; --muted:#9aa4b2; --text:#e6edf3; --line:#233041; --brand:#0b3d2e; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
+    .wrap { max-width: 1150px; margin: 0 auto; padding: 16px; }
+    .header { display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+    h1 { margin:0; font-size: 20px; }
+    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .card { background: var(--card); border:1px solid var(--line); border-radius: 14px; padding: 12px; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .btn { border:1px solid var(--line); background:#0f172a; color:var(--text); padding:10px 12px; border-radius: 12px; font-weight:800; cursor:pointer; }
+    .btn.primary { background: var(--brand); border-color:var(--brand;); }
+    .btn.danger { background: #3a0f18; border-color:#5b1a27; }
+    .btn.ghost { background: transparent; }
+    .btn.small { padding:7px 10px; border-radius: 10px; font-weight:900; }
+    .pill { padding:6px 10px; border-radius:999px; border:1px solid var(--line); color:var(--muted); font-size:12px; }
+    input, select, textarea {
+      width: 100%;
+      background:#0b1220; color:var(--text);
+      border:1px solid var(--line); border-radius: 12px;
+      padding: 10px;
+      outline: none;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      background:var(--bg);color:var(--text)
-    }
-    .wrap{max-width:1150px;margin:0 auto;padding:16px}
-    h1{margin:0;font-size:20px}
-    .sub{color:var(--muted);font-size:13px;margin-top:4px}
-    .card{
-      background:var(--card);border:1px solid var(--line);
-      border-radius:14px;padding:12px
-    }
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .btn{
-      border:1px solid var(--line);background:#0f172a;color:var(--text);
-      padding:10px 12px;border-radius:12px;font-weight:800;cursor:pointer
-    }
-    .btn.primary{background:var(--brand);border-color:var(--brand)}
-    .btn.danger{background:#3a0f18;border-color:#5b1a27}
-    .btn.small{padding:7px 10px;border-radius:10px;font-weight:900}
-    .pill{
-      padding:6px 10px;border-radius:999px;border:1px solid var(--line);
-      color:var(--muted);font-size:12px
-    }
-    input,select,textarea{
-      width:100%;background:#0b1220;color:var(--text);
-      border:1px solid var(--line);border-radius:12px;padding:10px
-    }
-    textarea{min-height:70px;resize:vertical}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:720px){.grid{grid-template-columns:1fr}}
-    table{width:100%;border-collapse:collapse;margin-top:10px}
-    th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left}
-    th{font-size:12px;text-transform:uppercase;color:var(--muted)}
-    .today{color:#b9ffcc;font-weight:900}
-    .overdue{color:#ffb4b4;font-weight:900}
-    a.phone{color:var(--text);font-weight:900;text-decoration:underline}
-    .footer{
-      margin-top:14px;padding-top:10px;border-top:1px solid var(--line);
-      font-size:12px;color:var(--muted);text-align:center
-    }
+    textarea { min-height: 70px; resize: vertical; }
+    .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
+    @media (max-width: 900px){ .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px){ .grid { grid-template-columns: 1fr; } }
+    table { width:100%; border-collapse: collapse; margin-top: 10px; overflow:hidden; border-radius: 12px; }
+    th, td { padding:10px; border-bottom:1px solid var(--line); text-align:left; vertical-align: top; }
+    th { color:var(--muted); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing:.06em; }
+    .overdue { color:#ffb4b4; font-weight:900; }
+    .today { color:#b9ffcc; font-weight:900; }
+    a.phone { color:var(--text); font-weight:900; text-decoration:underline; text-underline-offset: 3px; white-space: nowrap; }
+    .topControls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+    .filterSelect { width:auto; min-width: 250px; }
+    .tag { display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid var(--line); font-size:12px; color: var(--muted); }
+    .tight { line-height: 1.2; }
 
-    /* Gate */
-    .gateBackdrop{
-      position:fixed;inset:0;background:rgba(0,0,0,.75);
-      display:flex;align-items:center;justify-content:center;z-index:9999
+    .footer {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.4;
     }
-    .gate{
-      width:min(520px,100%);background:var(--card);
-      border:1px solid var(--line);border-radius:16px;padding:14px
-    }
-    .gate h2{margin:0;font-size:18px}
-    .err{color:#ffb4b4;font-weight:800;display:none;margin-top:8px}
 
     /* Modal */
-    .modalBackdrop{
-      position:fixed;inset:0;background:rgba(0,0,0,.65);
-      display:none;align-items:center;justify-content:center;z-index:9998
+    .modalBackdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
     }
-    .modal{
-      width:min(900px,100%);background:var(--card);
-      border:1px solid var(--line);border-radius:16px;padding:12px
+    .modal {
+      width: min(950px, 100%);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 12px 50px rgba(0,0,0,0.45);
     }
-    .panel{
-      margin-top:10px;border:1px dashed var(--line);
-      border-radius:14px;padding:10px
+    .modalHeader { display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+    .modalTitle { font-size: 16px; font-weight: 900; margin: 0; }
+    .modalSub { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .modalActions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .panel {
+      margin-top: 10px;
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      background: rgba(15,23,42,0.35);
     }
+    .panelTitle { font-weight: 900; margin:0 0 6px 0; font-size: 13px; }
+    .panelBtns { display:flex; gap:8px; flex-wrap:wrap; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+    /* Gate */
+    .gateBackdrop {
+      position: fixed; inset: 0;
+      background: radial-gradient(circle at top, rgba(11,61,46,0.35), rgba(0,0,0,0.75));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 10000;
+    }
+    .gate {
+      width: min(560px, 100%);
+      background: var(--card);
+      border:1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 12px 50px rgba(0,0,0,0.45);
+    }
+    .gate h2 { margin: 0; font-size: 18px; }
+    .gate p { margin: 8px 0 0 0; color: var(--muted); font-size: 13px; }
+    .gate .row { margin-top: 12px; }
+    .err { margin-top: 10px; color: #ffb4b4; font-weight: 800; font-size: 13px; display:none; }
   </style>
 </head>
 
 <body>
 
-<!-- DAILY PIN GATE -->
-<div class="gateBackdrop" id="gate">
-  <div class="gate">
-    <h2>SIM Follow-Up Engine</h2>
-    <div class="sub">The Street Inviting Execution System</div>
+  <!-- DAILY PIN Gate -->
+  <div class="gateBackdrop" id="gateBackdrop">
+    <div class="gate">
+      <h2>SIM Follow-Up Engine</h2>
+      <p>The Street Inviting Execution System · <strong>Internal</strong></p>
 
-    <div class="row" style="margin-top:12px">
-      <input id="pinInput" placeholder="Enter team PIN" inputmode="numeric">
-      <button class="btn primary" id="pinBtn">Unlock</button>
-    </div>
+      <div class="row">
+        <input id="pinInput" inputmode="numeric" placeholder="Enter team PIN" />
+        <button class="btn primary" id="pinBtn">Unlock</button>
+      </div>
+      <div class="err" id="pinErr">Wrong PIN.</div>
 
-    <div class="err" id="pinErr">Incorrect PIN</div>
-
-    <div class="sub" style="margin-top:12px">
-      <strong>Licensed Use Notice</strong><br>
-      This tool forms part of the <em>Street Inviting Method (SIM)</em> system.<br>
-      Licensed for use by <strong>active Vitality Nutrition coaches only</strong>.<br>
-      Unauthorised copying, sharing, or reproduction is prohibited.<br><br>
-      © Duncan Thorne / Vitality Nutrition
-    </div>
-  </div>
-</div>
-
-<div class="wrap" id="app" style="display:none">
-
-  <h1>SIM Follow-Up Engine</h1>
-  <div class="sub">
-    The Street Inviting Execution System · <strong>Internal</strong>
-  </div>
-
-  <div class="card" style="margin-top:12px">
-
-    <div class="grid">
-      <input id="name" placeholder="Name">
-      <input id="phone" placeholder="Phone">
-      <select id="stage">
-        <option>Invite sent</option>
-        <option>Follow-up #1 (10 mins)</option>
-        <option>Follow-up #2 (same evening)</option>
-        <option>Follow-up #3 (2 days)</option>
-        <option>Follow-up #4 (7 days)</option>
-        <option>Booked evaluation</option>
-        <option>Attended evaluation</option>
-        <option>Joined</option>
-        <option>Quarterly follow-up</option>
-      </select>
-      <input id="nextAction" type="date" placeholder="Next action (optional)">
-      <textarea id="notes" placeholder="Notes"></textarea>
-    </div>
-
-    <div class="row" style="margin-top:10px">
-      <button class="btn primary" id="addBtn">Add Contact</button>
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Next</th><th>Contact</th><th>Stage</th><th>Notes</th><th></th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-
-    <div class="footer">
-      © SIM Follow-Up Engine — The Street Inviting Execution System<br>
-      Intellectual property of <strong>Duncan Thorne / Vitality Nutrition</strong><br>
-      Licensed for active coaches only
+      <p class="hint" style="margin-top:12px;">
+        <strong>Licensed Use Notice</strong><br>
+        This tool forms part of the <em>Street Inviting Method (SIM)</em> system.<br>
+        Licensed for use by <strong>active Vitality Nutrition coaches only</strong>.<br>
+        Unauthorised copying, sharing, or reproduction is prohibited.<br>
+        © <strong>Duncan Thorne / Vitality Nutrition</strong>
+      </p>
     </div>
   </div>
-</div>
 
-<script>
-const TEAM_PIN = "1978"; // CHANGE THIS WHEN NEEDED
-const UNLOCK_KEY = "SIM_UNLOCK_DATE";
-const STORAGE_KEY = "SIM_ENGINE_INTERNAL";
+  <div class="wrap" id="appRoot" style="display:none;">
+    <div class="header">
+      <div>
+        <h1>SIM Follow-Up Engine</h1>
+        <div class="sub">The Street Inviting Execution System · <strong>Internal</strong></div>
+      </div>
 
-const today = () => new Date().toISOString().slice(0,10);
-const el = id => document.getElementById(id);
+      <div class="topControls">
+        <span class="pill" id="countPill">0 contacts</span>
+        <span class="pill" id="todayPill">Today: 0</span>
+        <span class="pill" id="overduePill">Overdue: 0</span>
 
-function unlockedToday(){
-  return localStorage.getItem(UNLOCK_KEY) === today();
-}
+        <select id="filter" class="filterSelect">
+          <option value="ALL">All contacts</option>
+          <option value="TODAY">Next action: Today</option>
+          <option value="OVERDUE">Next action: Overdue</option>
+          <option value="STAGE::Invite sent">Stage: Invite sent</option>
+          <option value="STAGE::Booked evaluation">Stage: Booked evaluation</option>
+          <option value="STAGE::Attended evaluation">Stage: Attended evaluation</option>
+          <option value="STAGE::Joined">Stage: Joined</option>
+          <option value="STAGE::Follow-up #1 (10 mins)">Stage: Follow-up #1</option>
+          <option value="STAGE::Follow-up #2 (same evening)">Stage: Follow-up #2</option>
+          <option value="STAGE::Follow-up #3 (2 days)">Stage: Follow-up #3</option>
+          <option value="STAGE::Follow-up #4 (7 days)">Stage: Follow-up #4</option>
+          <option value="STAGE::Quarterly follow-up">Stage: Quarterly</option>
+        </select>
+      </div>
+    </div>
 
-function unlock(){
-  if(el("pinInput").value === TEAM_PIN){
-    localStorage.setItem(UNLOCK_KEY, today());
-    el("gate").style.display="none";
-    el("app").style.display="block";
-  } else {
-    el("pinErr").style.display="block";
-  }
-}
+    <div class="card" style="margin-top:12px;">
+      <div class="grid">
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Date added</label>
+          <input id="dateAdded" type="date" />
+        </div>
 
-function lock(){
-  localStorage.removeItem(UNLOCK_KEY);
-  el("gate").style.display="flex";
-  el("app").style.display="none";
-}
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Name</label>
+          <input id="name" placeholder="e.g. Sarah" />
+        </div>
 
-function load(){
-  return JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
-}
-function save(d){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-}
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Phone number</label>
+          <input id="phone" inputmode="tel" placeholder="e.g. 07495 425 049" />
+        </div>
 
-function render(){
-  const data = load();
-  el("tbody").innerHTML = data.map((c,i)=>`
-    <tr>
-      <td class="${c.nextAction===today()?'today':(c.nextAction&&c.nextAction<today()?'overdue':'')}">${c.nextAction||""}</td>
-      <td><strong>${c.name}</strong><br><a class="phone" href="tel:${c.phone}">${c.phone}</a></td>
-      <td>${c.stage}</td>
-      <td>${c.notes||""}</td>
-      <td><button class="btn small" onclick="del(${i})">Del</button></td>
-    </tr>
-  `).join("");
-}
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Channel</label>
+          <select id="channel">
+            <option>Street</option>
+            <option>Instagram</option>
+            <option>Facebook</option>
+            <option>Referral</option>
+            <option>Walk-in</option>
+            <option>Other</option>
+          </select>
+        </div>
 
-function add(){
-  const d = load();
-  d.push({
-    name: el("name").value,
-    phone: el("phone").value,
-    stage: el("stage").value,
-    nextAction: el("nextAction").value,
-    notes: el("notes").value
-  });
-  save(d);
-  el("name").value=el("phone").value=el("notes").value="";
-  el("nextAction").value="";
-  render();
-}
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Stage</label>
+          <select id="stage">
+            <option>Invite sent</option>
+            <option>Booked evaluation</option>
+            <option>Attended evaluation</option>
+            <option>Joined</option>
+            <option>Follow-up #1 (10 mins)</option>
+            <option>Follow-up #2 (same evening)</option>
+            <option>Follow-up #3 (2 days)</option>
+            <option>Follow-up #4 (7 days)</option>
+            <option>Quarterly follow-up</option>
+          </select>
+        </div>
 
-function del(i){
-  const d = load();
-  d.splice(i,1);
-  save(d);render();
-}
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Next action date (optional)</label>
+          <input id="nextAction" type="date" />
+        </div>
 
-el("pinBtn").onclick=unlock;
-el("addBtn").onclick=add;
+        <div style="grid-column: 1 / -1;">
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Notes</label>
+          <textarea id="notes" placeholder="Goals, preferred times, objections, referral, etc."></textarea>
+        </div>
+      </div>
 
-if(unlockedToday()){
-  el("gate").style.display="none";
-  el("app").style.display="block";
-}
-render();
-</script>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn primary" id="addBtn">+ Add contact</button>
+        <button class="btn" id="exportBtn">Export CSV</button>
+        <button class="btn danger" id="clearBtn">Clear all (this device)</button>
+        <button class="btn ghost" id="lockBtn" title="Lock now (requires PIN again)">Lock</button>
+      </div>
+
+      <table aria-label="Contacts table">
+        <thead>
+          <tr>
+            <th>Next action</th>
+            <th>Person</th>
+            <th>Stage</th>
+            <th>Channel</th>
+            <th>Date added</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+
+      <div class="footer">
+        © <strong>SIM Follow-Up Engine</strong> — The Street Inviting Execution System · <strong>Internal</strong><br>
+        Intellectual property of <strong>Duncan Thorne / Vitality Nutrition</strong><br>
+        Licensed for active coaches only
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modalBackdrop" id="modalBackdrop" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modalHeader">
+        <div>
+          <div class="modalTitle" id="modalTitle">Edit Contact</div>
+          <div class="modalSub">Use SIM buttons to set stage + next action automatically. Log Touch adds timestamped notes.</div>
+        </div>
+        <div class="modalActions">
+          <button class="btn ghost" id="closeModalBtn">Close</button>
+          <button class="btn danger" id="deleteModalBtn">Delete</button>
+          <button class="btn primary" id="saveModalBtn">Save</button>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:10px;">
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Name</label>
+          <input id="m_name" />
+        </div>
+
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Phone number</label>
+          <input id="m_phone" inputmode="tel" />
+        </div>
+
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Channel</label>
+          <select id="m_channel">
+            <option>Street</option>
+            <option>Instagram</option>
+            <option>Facebook</option>
+            <option>Referral</option>
+            <option>Walk-in</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Stage</label>
+          <select id="m_stage">
+            <option>Invite sent</option>
+            <option>Booked evaluation</option>
+            <option>Attended evaluation</option>
+            <option>Joined</option>
+            <option>Follow-up #1 (10 mins)</option>
+            <option>Follow-up #2 (same evening)</option>
+            <option>Follow-up #3 (2 days)</option>
+            <option>Follow-up #4 (7 days)</option>
+            <option>Quarterly follow-up</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Next action date (optional)</label>
+          <input id="m_nextAction" type="date" />
+        </div>
+
+        <div>
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Date added</label>
+          <input id="m_dateAdded" type="date" />
+        </div>
+
+        <div style="grid-column: 1 / -1;">
+          <label class="pill" style="display:inline-block; margin-bottom:6px;">Notes</label>
+          <textarea id="m_notes"></textarea>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panelTitle">SIM One-Tap Follow-Ups</div>
+        <div class="panelBtns">
+          <button class="btn small" data-sim="FU1">FU #1 (10 mins)</button>
+          <button class="btn small" data-sim="FU2">FU #2 (evening)</button>
+          <button class="btn small" data-sim="FU3">FU #3 (+2 days)</button>
+          <button class="btn small" data-sim="FU4">FU #4 (+7 days)</button>
+          <button class="btn small" data-sim="QTR">Quarterly (+90)</button>
+          <button class="btn small" data-sim="JOIN">Joined (clear)</button>
+        </div>
+        <div class="hint">Sets Stage + Next Action. Joined clears next action (club takes over).</div>
+      </div>
+
+      <div class="panel">
+        <div class="panelTitle">Log Touch (adds dated note + sets next SIM step)</div>
+        <div class="panelBtns">
+          <button class="btn small" data-touch="CALLED">📞 Called</button>
+          <button class="btn small" data-touch="TEXTED">💬 Texted</button>
+          <button class="btn small" data-touch="BOOKED">📅 Booked</button>
+          <button class="btn small" data-touch="ATTENDED">✅ Attended</button>
+          <button class="btn small" data-touch="JOINED">🏁 Joined</button>
+        </div>
+        <div class="hint">
+          Defaults: Called → FU#2 today • Texted → FU#3 in 2 days • Booked/Attended/Joined update stage and clear next action.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /***********************
+     * DAILY TEAM PIN GATE
+     ***********************/
+    const TEAM_PIN = "1978"; // <-- CHANGE THIS
+    const UNLOCK_KEY = "SIM_APP_UNLOCK_DATE"; // stores YYYY-MM-DD
+    const STORAGE_KEY = "sim_followup_engine_internal_v1";
+
+    const el = (id) => document.getElementById(id);
+    const tbody = el("tbody");
+
+    let editingId = null;
+
+    function todayISO() {
+      const d = new Date();
+      const off = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - off * 60000);
+      return local.toISOString().slice(0,10);
+    }
+
+    function addDaysISO(days) {
+      const d = new Date();
+      d.setHours(0,0,0,0);
+      d.setDate(d.getDate() + days);
+      const off = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - off * 60000);
+      return local.toISOString().slice(0,10);
+    }
+
+    function stampUK() {
+      const d = new Date();
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const dd = String(d.getDate()).padStart(2,"0");
+      return `${dd} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function escapeHtml(str){
+      return String(str ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function save(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    function normalizePhone(input) {
+      const trimmed = String(input || "").trim();
+      if (!trimmed) return "";
+      let cleaned = trimmed.replace(/[^\d+]/g, "");
+      cleaned = cleaned.replace(/\+/g, "");
+      if (trimmed.startsWith("+")) cleaned = "+" + cleaned;
+      return cleaned;
+    }
+
+    function isOverdue(nextActionISO) {
+      if (!nextActionISO) return false;
+      return nextActionISO < todayISO();
+    }
+
+    function isToday(nextActionISO) {
+      if (!nextActionISO) return false;
+      return nextActionISO === todayISO();
+    }
+
+    function counts(items) {
+      const t = todayISO();
+      let todayCount = 0;
+      let overdueCount = 0;
+      for (const it of items) {
+        if (!it.nextAction) continue;
+        if (it.nextAction === t) todayCount++;
+        else if (it.nextAction < t) overdueCount++;
+      }
+      return { todayCount, overdueCount };
+    }
+
+    function applyFilter(items) {
+      const filterVal = el("filter")?.value || "ALL";
+      let filtered = items.slice();
+
+      if (filterVal === "TODAY") filtered = filtered.filter(it => isToday(it.nextAction));
+      else if (filterVal === "OVERDUE") filtered = filtered.filter(it => isOverdue(it.nextAction));
+      else if (filterVal.startsWith("STAGE::")) {
+        const stage = filterVal.replace("STAGE::", "");
+        filtered = filtered.filter(it => (it.stage || "") === stage);
+      }
+
+      // Sort: nextAction soonest first; blanks bottom.
+      filtered.sort((a, b) => {
+        const na = a.nextAction || "9999-12-31";
+        const nb = b.nextAction || "9999-12-31";
+        if (na !== nb) return na.localeCompare(nb);
+        const an = a.name || "";
+        const bn = b.name || "";
+        return an.localeCompare(bn);
+      });
+
+      return filtered;
+    }
+
+    function render() {
+      const items = load();
+      const filtered = applyFilter(items);
+
+      el("countPill").textContent = `${items.length} contacts`;
+      const { todayCount, overdueCount } = counts(items);
+      el("todayPill").textContent = `Today: ${todayCount}`;
+      el("overduePill").textContent = `Overdue: ${overdueCount}`;
+
+      tbody.innerHTML = "";
+      filtered.forEach((it) => {
+        const phoneNorm = it.phoneNorm || normalizePhone(it.phoneRaw);
+        const phoneShown = (it.phoneRaw || phoneNorm || "").trim();
+        const telHref = phoneNorm ? `tel:${phoneNorm}` : "";
+        const smsHref = phoneNorm ? `sms:${phoneNorm}` : "";
+
+        let nextClass = "";
+        if (isOverdue(it.nextAction)) nextClass = "overdue";
+        else if (isToday(it.nextAction)) nextClass = "today";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="${nextClass}">${escapeHtml(it.nextAction || "")}</td>
+
+          <td class="tight">
+            <div><strong>${escapeHtml(it.name || "")}</strong></div>
+            ${
+              phoneNorm
+                ? `<div style="margin-top:6px;"><a class="phone" href="${telHref}">${escapeHtml(phoneShown)}</a></div>`
+                : `<div class="sub" style="margin-top:6px;">(no phone saved)</div>`
+            }
+          </td>
+
+          <td><span class="tag">${escapeHtml(it.stage || "")}</span></td>
+          <td>${escapeHtml(it.channel || "")}</td>
+          <td>${escapeHtml(it.dateAdded || "")}</td>
+          <td>${escapeHtml(it.notes || "")}</td>
+
+          <td>
+            <div class="row" style="justify-content:flex-end;">
+              ${ phoneNorm ? `<a class="btn small" href="${telHref}">Call</a><a class="btn small" href="${smsHref}">Text</a>` : "" }
+              <button class="btn small" data-edit="${escapeHtml(it.id)}">Edit</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addContact() {
+      const dateAdded = el("dateAdded").value || todayISO();
+      const name = el("name").value.trim();
+      const phoneRaw = el("phone").value.trim();
+      const phoneNorm = normalizePhone(phoneRaw);
+      const channel = el("channel").value;
+      const stage = el("stage").value;
+      const nextAction = el("nextAction").value || "";
+      const notes = el("notes").value.trim();
+
+      if (!name) { alert("Add a name (first name is fine)."); return; }
+      if (!phoneNorm) { alert("Add a phone number (digits only is fine)."); return; }
+
+      const items = load();
+      const id = (crypto?.randomUUID?.() || String(Date.now()) + "_" + Math.random().toString(16).slice(2));
+
+      items.push({ id, dateAdded, name, phoneRaw, phoneNorm, channel, stage, nextAction, notes });
+      save(items);
+
+      // reset (keep date)
+      el("name").value = "";
+      el("phone").value = "";
+      el("notes").value = "";
+      el("nextAction").value = "";
+      el("stage").value = "Invite sent";
+      el("channel").value = "Street";
+
+      render();
+    }
+
+    function clearAll() {
+      if (!confirm("Clear ALL contacts from this device/browser?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      render();
+    }
+
+    function csvCell(v){
+      const s = String(v ?? "").replaceAll('"','""');
+      return `"${s}"`;
+    }
+
+    function exportCSV() {
+      const items = load();
+      if (!items.length) { alert("No contacts to export."); return; }
+
+      const header = ["id","next_action","name","phone","stage","channel","date_added","notes"];
+      const rows = items.map(it => ([
+        it.id || "",
+        it.nextAction || "",
+        it.name || "",
+        it.phoneNorm || it.phoneRaw || "",
+        it.stage || "",
+        it.channel || "",
+        it.dateAdded || "",
+        it.notes || ""
+      ]).map(csvCell));
+
+      const csv = [header.join(","), ...rows.map(r => r.join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `sim-followup-engine-${todayISO()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // Modal helpers
+    function openModalFor(id) {
+      const items = load();
+      const it = items.find(x => x.id === id);
+      if (!it) return;
+
+      editingId = id;
+
+      el("m_name").value = it.name || "";
+      el("m_phone").value = it.phoneRaw || it.phoneNorm || "";
+      el("m_channel").value = it.channel || "Street";
+      el("m_stage").value = it.stage || "Invite sent";
+      el("m_nextAction").value = it.nextAction || "";
+      el("m_dateAdded").value = it.dateAdded || todayISO();
+      el("m_notes").value = it.notes || "";
+
+      el("modalTitle").textContent = `Edit: ${it.name || "Contact"}`;
+      el("modalBackdrop").style.display = "flex";
+    }
+
+    function closeModal() {
+      editingId = null;
+      el("modalBackdrop").style.display = "none";
+    }
+
+    function saveModal() {
+      if (!editingId) return;
+
+      const items = load();
+      const idx = items.findIndex(x => x.id === editingId);
+      if (idx < 0) return;
+
+      const name = el("m_name").value.trim();
+      const phoneRaw = el("m_phone").value.trim();
+      const phoneNorm = normalizePhone(phoneRaw);
+
+      if (!name) { alert("Name is required."); return; }
+      if (!phoneNorm) { alert("Phone number is required."); return; }
+
+      items[idx] = {
+        ...items[idx],
+        name,
+        phoneRaw,
+        phoneNorm,
+        channel: el("m_channel").value,
+        stage: el("m_stage").value,
+        nextAction: el("m_nextAction").value || "",
+        dateAdded: el("m_dateAdded").value || items[idx].dateAdded || todayISO(),
+        notes: el("m_notes").value.trim()
+      };
+
+      save(items);
+      closeModal();
+      render();
+    }
+
+    function deleteModal() {
+      if (!editingId) return;
+      const items = load();
+      const idx = items.findIndex(x => x.id === editingId);
+      if (idx < 0) return;
+
+      const name = items[idx]?.name || "this contact";
+      if (!confirm(`Delete ${name}?`)) return;
+
+      items.splice(idx, 1);
+      save(items);
+      closeModal();
+      render();
+    }
+
+    function applySIM(actionCode) {
+      switch (actionCode) {
+        case "FU1":
+          el("m_stage").value = "Follow-up #1 (10 mins)";
+          el("m_nextAction").value = todayISO();
+          break;
+        case "FU2":
+          el("m_stage").value = "Follow-up #2 (same evening)";
+          el("m_nextAction").value = todayISO();
+          break;
+        case "FU3":
+          el("m_stage").value = "Follow-up #3 (2 days)";
+          el("m_nextAction").value = addDaysISO(2);
+          break;
+        case "FU4":
+          el("m_stage").value = "Follow-up #4 (7 days)";
+          el("m_nextAction").value = addDaysISO(7);
+          break;
+        case "QTR":
+          el("m_stage").value = "Quarterly follow-up";
+          el("m_nextAction").value = addDaysISO(90);
+          break;
+        case "JOIN":
+          el("m_stage").value = "Joined";
+          el("m_nextAction").value = "";
+          break;
+      }
+    }
+
+    function appendNote(line) {
+      const cur = el("m_notes").value.trim();
+      el("m_notes").value = cur ? (cur + "\n" + line) : line;
+    }
+
+    function applyTouch(touchCode) {
+      const date = stampUK();
+
+      if (touchCode === "CALLED") {
+        appendNote(`${date} – Called`);
+        el("m_stage").value = "Follow-up #2 (same evening)";
+        el("m_nextAction").value = todayISO();
+        return;
+      }
+      if (touchCode === "TEXTED") {
+        appendNote(`${date} – Texted`);
+        el("m_stage").value = "Follow-up #3 (2 days)";
+        el("m_nextAction").value = addDaysISO(2);
+        return;
+      }
+      if (touchCode === "BOOKED") {
+        appendNote(`${date} – Booked evaluation`);
+        el("m_stage").value = "Booked evaluation";
+        el("m_nextAction").value = "";
+        return;
+      }
+      if (touchCode === "ATTENDED") {
+        appendNote(`${date} – Attended evaluation`);
+        el("m_stage").value = "Attended evaluation";
+        el("m_nextAction").value = "";
+        return;
+      }
+      if (touchCode === "JOINED") {
+        appendNote(`${date} – Joined`);
+        el("m_stage").value = "Joined";
+        el("m_nextAction").value = "";
+        return;
+      }
+    }
+
+    /***********************
+     * DAILY LOCK LOGIC
+     ***********************/
+    function isUnlockedToday() {
+      return localStorage.getItem(UNLOCK_KEY) === todayISO();
+    }
+
+    function lockNow() {
+      closeModal();
+      localStorage.removeItem(UNLOCK_KEY);
+      el("appRoot").style.display = "none";
+      el("gateBackdrop").style.display = "flex";
+      el("pinInput").value = "";
+      el("pinErr").style.display = "none";
+    }
+
+    function unlockIfCorrect() {
+      const pin = el("pinInput").value.trim();
+      if (pin === TEAM_PIN) {
+        localStorage.setItem(UNLOCK_KEY, todayISO());
+        el("gateBackdrop").style.display = "none";
+        el("appRoot").style.display = "block";
+      } else {
+        el("pinErr").style.display = "block";
+      }
+    }
+
+    function enforceDailyLock() {
+      if (!isUnlockedToday()) lockNow();
+    }
+
+    function scheduleMidnightRelock() {
+      const now = new Date();
+      const next = new Date(now);
+      next.setHours(24,0,5,0); // 5 seconds after midnight
+      const ms = next.getTime() - now.getTime();
+      setTimeout(() => {
+        enforceDailyLock();
+        scheduleMidnightRelock();
+      }, Math.max(1000, ms));
+    }
+
+    // Wire up UI
+    el("addBtn").addEventListener("click", addContact);
+    el("exportBtn").addEventListener("click", exportCSV);
+    el("clearBtn").addEventListener("click", clearAll);
+    el("filter").addEventListener("change", render);
+    el("lockBtn").addEventListener("click", lockNow);
+
+    tbody.addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button[data-edit]");
+      if (!btn) return;
+      openModalFor(btn.getAttribute("data-edit"));
+    });
+
+    el("closeModalBtn").addEventListener("click", closeModal);
+    el("saveModalBtn").addEventListener("click", saveModal);
+    el("deleteModalBtn").addEventListener("click", deleteModal);
+
+    el("modalBackdrop").addEventListener("click", (ev) => {
+      if (ev.target === el("modalBackdrop")) closeModal();
+    });
+
+    document.querySelectorAll("[data-sim]").forEach(btn => {
+      btn.addEventListener("click", () => applySIM(btn.getAttribute("data-sim")));
+    });
+
+    document.querySelectorAll("[data-touch]").forEach(btn => {
+      btn.addEventListener("click", () => applyTouch(btn.getAttribute("data-touch")));
+    });
+
+    // Gate events
+    el("pinBtn").addEventListener("click", unlockIfCorrect);
+    el("pinInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") unlockIfCorrect();
+    });
+
+    // Init
+    el("dateAdded").value = todayISO();
+    render();
+
+    if (isUnlockedToday()) {
+      el("gateBackdrop").style.display = "none";
+      el("appRoot").style.display = "block";
+    } else {
+      lockNow();
+    }
+
+    setInterval(enforceDailyLock, 60 * 1000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) enforceDailyLock(); });
+    scheduleMidnightRelock();
+
+    // Service worker (optional)
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
+  </script>
 </body>
 </html>
